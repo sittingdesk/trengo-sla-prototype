@@ -215,7 +215,7 @@ onMounted(() => {
           icon="Check"
           label="Resolution"
           :tooltip="SLA_TOOLTIPS.resolution"
-          description="Time until the conversation is closed"
+          description="Time until the ticket is closed"
         >
           <Input
             :model-value="draft.targets.resolution.value || ''"

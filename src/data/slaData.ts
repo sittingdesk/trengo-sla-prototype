@@ -117,6 +117,6 @@ export const SLA_TOOLTIPS = {
   firstReply:
     "How fast your team should send the first reply after a customer's first message.",
   resolution:
-    'How fast the conversation should be fully closed, from the moment it was created.',
+    'How fast the ticket should be fully closed, from the moment it was created.',
   businessHours: 'Whether the clock runs 24/7 or only during business hours.',
 } as const
