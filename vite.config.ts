@@ -1,0 +1,25 @@
+import { defineConfig } from 'vite'
+import { fileURLToPath, URL } from 'node:url'
+import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
+import { viteSingleFile } from 'vite-plugin-singlefile'
+
+// Self-contained build: vite-plugin-singlefile inlines JS/CSS into one
+// dist/index.html so the prototype can be shared as a single file and opened
+// via file:// — matches the build target in CLAUDE.md.
+export default defineConfig({
+  // Relative base so the single-file build works from file:// and from a
+  // GitHub Pages project subpath alike.
+  base: './',
+  // Dev server: honour an externally assigned port (PORT env) so multiple
+  // prototype workspaces can run side by side without clashing on 5173.
+  server: {
+    port: Number(process.env.PORT) || 5173,
+  },
+  plugins: [vue(), tailwindcss(), viteSingleFile()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+})
