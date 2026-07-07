@@ -8,6 +8,7 @@ import { RailSidebar } from '@/components/rail'
 import SettingsSidebar from '@/components/layout/SettingsSidebar.vue'
 import SlaOverview from '@/components/sla/SlaOverview.vue'
 import SlaEditor from '@/components/sla/SlaEditor.vue'
+import ViewModeSwitcher from '@/components/sla/ViewModeSwitcher.vue'
 import { useSlaNav } from '@/composables/useSlaNav'
 
 const { nav } = useSlaNav()
@@ -24,5 +25,8 @@ const { nav } = useSlaNav()
       <!-- Keyed so switching policies always starts from a fresh draft -->
       <SlaEditor v-else :edit-id="nav.editId" :key="nav.editId ?? 'new'" />
     </main>
+
+    <!-- Prototype-only view-mode switcher (overview states) -->
+    <ViewModeSwitcher v-if="nav.view === 'overview'" />
   </div>
 </template>
