@@ -8,8 +8,9 @@
 
 export type TimeUnit = 'minutes' | 'hours' | 'days'
 
-/** Targets are always on (per the Figma redesign) — just a value + unit. */
+/** A response-time target. `enabled` off = this policy doesn't measure it. */
 export interface TargetSetting {
+  enabled: boolean
   value: number
   unit: TimeUnit
 }
@@ -83,8 +84,8 @@ export const SEED_POLICIES: Policy[] = [
     active: true,
     channels: ['support_email'],
     targets: {
-      firstReply: { value: 1, unit: 'hours' },
-      resolution: { value: 48, unit: 'hours' },
+      firstReply: { enabled: true, value: 1, unit: 'hours' },
+      resolution: { enabled: true, value: 48, unit: 'hours' },
     },
     countBusinessHoursOnly: true,
   },
@@ -94,8 +95,8 @@ export const SEED_POLICIES: Policy[] = [
     active: true,
     channels: ['whatsapp_1', 'whatsapp_2'],
     targets: {
-      firstReply: { value: 1, unit: 'hours' },
-      resolution: { value: 48, unit: 'hours' },
+      firstReply: { enabled: true, value: 1, unit: 'hours' },
+      resolution: { enabled: true, value: 48, unit: 'hours' },
     },
     countBusinessHoursOnly: false,
   },
@@ -105,8 +106,8 @@ export const SEED_POLICIES: Policy[] = [
     active: true,
     channels: ['info_email'],
     targets: {
-      firstReply: { value: 4, unit: 'hours' },
-      resolution: { value: 48, unit: 'hours' },
+      firstReply: { enabled: true, value: 4, unit: 'hours' },
+      resolution: { enabled: true, value: 48, unit: 'hours' },
     },
     countBusinessHoursOnly: true,
   },

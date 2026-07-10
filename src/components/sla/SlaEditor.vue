@@ -59,8 +59,16 @@ watch(
   },
 )
 
+// At least one target must be enabled (a policy with none measures nothing).
+const noTargets = computed(
+  () => !draft.targets.firstReply.enabled && !draft.targets.resolution.enabled,
+)
+
+// Only enabled targets need a valid (≥ 1) value.
 const targetValuesInvalid = computed(
-  () => draft.targets.firstReply.value < 1 || draft.targets.resolution.value < 1,
+  () =>
+    (draft.targets.firstReply.enabled && draft.targets.firstReply.value < 1) ||
+    (draft.targets.resolution.enabled && draft.targets.resolution.value < 1),
 )
 
 /** Per-channel overlap against other ACTIVE policies — a hard block (V1 rule). */
@@ -80,6 +88,7 @@ const canSave = computed(
   () =>
     draft.name.trim().length > 0 &&
     !noChannels.value &&
+    !noTargets.value &&
     !targetValuesInvalid.value &&
     !conflicts.value.length,
 )
@@ -190,22 +199,26 @@ onMounted(() => {
           :tooltip="SLA_TOOLTIPS.firstReply"
           description="Time until the first agent reply"
         >
-          <Input
-            :model-value="draft.targets.firstReply.value || ''"
-            type="number"
-            min="1"
-            step="1"
-            class="w-[85px] rounded-base border-grey-400 text-base font-medium text-grey-700 shadow-100 tabular-nums"
-            @update:model-value="onValueInput('firstReply', $event)"
-          />
-          <UnitSelect
-            v-model="draft.targets.firstReply.unit"
-            class="w-[119px]"
-            :options="[
-              { value: 'minutes', label: 'Minutes' },
-              { value: 'hours', label: 'Hours' },
-            ]"
-          />
+          <template v-if="draft.targets.firstReply.enabled">
+            <Input
+              :model-value="draft.targets.firstReply.value || ''"
+              type="number"
+              min="1"
+              step="1"
+              class="w-[85px] rounded-base border-grey-400 text-base font-medium text-grey-700 shadow-100 tabular-nums"
+              @update:model-value="onValueInput('firstReply', $event)"
+            />
+            <UnitSelect
+              v-model="draft.targets.firstReply.unit"
+              class="w-[119px]"
+              :options="[
+                { value: 'minutes', label: 'Minutes' },
+                { value: 'hours', label: 'Hours' },
+              ]"
+            />
+          </template>
+          <span v-else class="text-sm text-grey-600">Off</span>
+          <Switch v-model="draft.targets.firstReply.enabled" />
         </SettingRow>
 
         <div class="h-px w-full bg-grey-300" />
@@ -217,22 +230,31 @@ onMounted(() => {
           :tooltip="SLA_TOOLTIPS.resolution"
           description="Time until the ticket is closed"
         >
-          <Input
-            :model-value="draft.targets.resolution.value || ''"
-            type="number"
-            min="1"
-            step="1"
-            class="w-[85px] rounded-base border-grey-400 text-base font-medium text-grey-700 shadow-100 tabular-nums"
-            @update:model-value="onValueInput('resolution', $event)"
-          />
-          <UnitSelect
-            v-model="draft.targets.resolution.unit"
-            class="w-[119px]"
-            :options="[
-              { value: 'hours', label: 'Hours' },
-              { value: 'days', label: 'Days' },
-            ]"
-          />
+          <template v-if="draft.targets.resolution.enabled">
+            <Input
+              :model-value="draft.targets.resolution.value || ''"
+              type="number"
+              min="1"
+              step="1"
+              class="w-[85px] rounded-base border-grey-400 text-base font-medium text-grey-700 shadow-100 tabular-nums"
+              @update:model-value="onValueInput('resolution', $event)"
+            />
+            <UnitSelect
+              v-model="draft.targets.resolution.unit"
+              class="w-[119px]"
+              :options="[
+                { value: 'hours', label: 'Hours' },
+                { value: 'days', label: 'Days' },
+              ]"
+            />
+          </template>
+          <span v-else class="text-sm text-grey-600">Off</span>
+          <Switch v-model="draft.targets.resolution.enabled" />
+          <template #below>
+            <p v-if="noTargets" class="mt-3 text-sm font-medium text-error-500">
+              Enable at least one target.
+            </p>
+          </template>
         </SettingRow>
 
         <div class="h-px w-full bg-grey-300" />

@@ -56,12 +56,11 @@ export function channelsLabel(channels: string[]): string {
 /** Plain-language one-liner for a policy row on the overview. */
 export function scopeSentence(policy: Policy): string {
   const { firstReply, resolution } = policy.targets
-  return [
-    channelsLabel(policy.channels),
-    `reply within ${firstReply.value}${shortUnit(firstReply.unit)}`,
-    `resolve within ${resolution.value}${shortUnit(resolution.unit)}`,
-    policy.countBusinessHoursOnly ? 'business hours' : '24/7',
-  ].join(' · ')
+  const parts = [channelsLabel(policy.channels)]
+  if (firstReply.enabled) parts.push(`reply within ${firstReply.value}${shortUnit(firstReply.unit)}`)
+  if (resolution.enabled) parts.push(`resolve within ${resolution.value}${shortUnit(resolution.unit)}`)
+  parts.push(policy.countBusinessHoursOnly ? 'business hours' : '24/7')
+  return parts.join(' · ')
 }
 
 /* ── coverage ──────────────────────────────────────────────────────────── */
@@ -87,10 +86,17 @@ export function summaryParts(policy: Policy): SummaryPart[] {
   const parts: SummaryPart[] = [{ text: 'In plain terms: conversations on ' }]
   parts.push({ text: channelsLabel(policy.channels) || '(no channels)', strong: true })
   const { firstReply, resolution } = policy.targets
-  parts.push({ text: ' get a first reply within ' })
-  parts.push({ text: `${firstReply.value} ${firstReply.unit}`, strong: true })
-  parts.push({ text: ' and are resolved within ' })
-  parts.push({ text: `${resolution.value} ${resolution.unit}`, strong: true })
+  if (firstReply.enabled) {
+    parts.push({ text: ' get a first reply within ' })
+    parts.push({ text: `${firstReply.value} ${firstReply.unit}`, strong: true })
+    if (resolution.enabled) {
+      parts.push({ text: ' and are resolved within ' })
+      parts.push({ text: `${resolution.value} ${resolution.unit}`, strong: true })
+    }
+  } else if (resolution.enabled) {
+    parts.push({ text: ' are resolved within ' })
+    parts.push({ text: `${resolution.value} ${resolution.unit}`, strong: true })
+  }
   parts.push({ text: ', counted during ' })
   parts.push({ text: policy.countBusinessHoursOnly ? 'business hours' : '24/7', strong: true })
   parts.push({ text: '.' })
@@ -134,7 +140,7 @@ export function normalizePolicy(policy: Policy): Policy {
 }
 
 function targetSetting(value: number, unit: TimeUnit): TargetSetting {
-  return { value, unit }
+  return { enabled: true, value, unit }
 }
 
 /** Create-mode defaults. */

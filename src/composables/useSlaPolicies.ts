@@ -8,8 +8,9 @@ import { channelConflicts } from '@/lib/sla'
 const STORAGE_KEY = 'trengo_sla_policies'
 // v2: schedule → scheduleId. v3: channel-only scoping — dropped teams /
 // hoursMode / scheduleId, added countBusinessHoursOnly. v4: dropped warnMinutes.
-// v5: targets always-on — dropped TargetSetting.enabled.
-const SCHEMA_VERSION = 5
+// v5: targets always-on — dropped TargetSetting.enabled. v6: re-added
+// TargetSetting.enabled (per-target on/off toggles).
+const SCHEMA_VERSION = 6
 
 interface StoredShape {
   version: number
