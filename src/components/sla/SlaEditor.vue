@@ -199,24 +199,24 @@ onMounted(() => {
           :tooltip="SLA_TOOLTIPS.firstReply"
           description="Time until the first agent reply"
         >
-          <template v-if="draft.targets.firstReply.enabled">
-            <Input
-              :model-value="draft.targets.firstReply.value || ''"
-              type="number"
-              min="1"
-              step="1"
-              class="w-[85px] rounded-base border-grey-400 text-base font-medium text-grey-700 shadow-100 tabular-nums"
-              @update:model-value="onValueInput('firstReply', $event)"
-            />
-            <UnitSelect
-              v-model="draft.targets.firstReply.unit"
-              class="w-[119px]"
-              :options="[
-                { value: 'minutes', label: 'Minutes' },
-                { value: 'hours', label: 'Hours' },
-              ]"
-            />
-          </template>
+          <Input
+            :model-value="draft.targets.firstReply.value || ''"
+            type="number"
+            min="1"
+            step="1"
+            :disabled="!draft.targets.firstReply.enabled"
+            class="w-[85px] rounded-base border-grey-400 text-base font-medium text-grey-700 shadow-100 tabular-nums"
+            @update:model-value="onValueInput('firstReply', $event)"
+          />
+          <UnitSelect
+            v-model="draft.targets.firstReply.unit"
+            class="w-[119px]"
+            :disabled="!draft.targets.firstReply.enabled"
+            :options="[
+              { value: 'minutes', label: 'Minutes' },
+              { value: 'hours', label: 'Hours' },
+            ]"
+          />
           <!-- Lock the last enabled target so ≥1 can't be turned off -->
           <Switch
             v-model="draft.targets.firstReply.enabled"
@@ -233,24 +233,24 @@ onMounted(() => {
           :tooltip="SLA_TOOLTIPS.resolution"
           description="Time until the ticket is closed"
         >
-          <template v-if="draft.targets.resolution.enabled">
-            <Input
-              :model-value="draft.targets.resolution.value || ''"
-              type="number"
-              min="1"
-              step="1"
-              class="w-[85px] rounded-base border-grey-400 text-base font-medium text-grey-700 shadow-100 tabular-nums"
-              @update:model-value="onValueInput('resolution', $event)"
-            />
-            <UnitSelect
-              v-model="draft.targets.resolution.unit"
-              class="w-[119px]"
-              :options="[
-                { value: 'hours', label: 'Hours' },
-                { value: 'days', label: 'Days' },
-              ]"
-            />
-          </template>
+          <Input
+            :model-value="draft.targets.resolution.value || ''"
+            type="number"
+            min="1"
+            step="1"
+            :disabled="!draft.targets.resolution.enabled"
+            class="w-[85px] rounded-base border-grey-400 text-base font-medium text-grey-700 shadow-100 tabular-nums"
+            @update:model-value="onValueInput('resolution', $event)"
+          />
+          <UnitSelect
+            v-model="draft.targets.resolution.unit"
+            class="w-[119px]"
+            :disabled="!draft.targets.resolution.enabled"
+            :options="[
+              { value: 'hours', label: 'Hours' },
+              { value: 'days', label: 'Days' },
+            ]"
+          />
           <Switch
             v-model="draft.targets.resolution.enabled"
             :disabled="draft.targets.resolution.enabled && !draft.targets.firstReply.enabled"

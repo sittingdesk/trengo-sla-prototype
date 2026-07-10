@@ -8,16 +8,18 @@ import Icon from '@/components/Icon.vue'
 
 defineProps<{
   options: { value: T; label: string }[]
+  disabled?: boolean
 }>()
 
 const model = defineModel<T>({ required: true })
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative" :class="disabled && 'opacity-50'">
     <select
       v-model="model"
-      class="h-10 w-full cursor-pointer appearance-none rounded-base border border-grey-400 bg-white pl-3 pr-9 text-base font-medium text-grey-700 shadow-100 transition-colors focus:outline-none focus-visible:shadow-focus"
+      :disabled="disabled"
+      class="h-10 w-full cursor-pointer appearance-none rounded-base border border-grey-400 bg-white pl-3 pr-9 text-base font-medium text-grey-700 shadow-100 transition-colors focus:outline-none focus-visible:shadow-focus disabled:cursor-not-allowed"
     >
       <option v-for="opt in options" :key="opt.value" :value="opt.value">
         {{ opt.label }}
