@@ -217,8 +217,11 @@ onMounted(() => {
               ]"
             />
           </template>
-          <span v-else class="text-sm text-grey-600">Off</span>
-          <Switch v-model="draft.targets.firstReply.enabled" />
+          <!-- Lock the last enabled target so ≥1 can't be turned off -->
+          <Switch
+            v-model="draft.targets.firstReply.enabled"
+            :disabled="draft.targets.firstReply.enabled && !draft.targets.resolution.enabled"
+          />
         </SettingRow>
 
         <div class="h-px w-full bg-grey-300" />
@@ -248,13 +251,10 @@ onMounted(() => {
               ]"
             />
           </template>
-          <span v-else class="text-sm text-grey-600">Off</span>
-          <Switch v-model="draft.targets.resolution.enabled" />
-          <template #below>
-            <p v-if="noTargets" class="mt-3 text-sm font-medium text-error-500">
-              Enable at least one target.
-            </p>
-          </template>
+          <Switch
+            v-model="draft.targets.resolution.enabled"
+            :disabled="draft.targets.resolution.enabled && !draft.targets.firstReply.enabled"
+          />
         </SettingRow>
 
         <div class="h-px w-full bg-grey-300" />
