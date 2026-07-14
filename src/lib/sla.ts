@@ -57,7 +57,8 @@ export function channelsLabel(channels: string[]): string {
 export function scopeSentence(policy: Policy): string {
   const { firstReply, resolution } = policy.targets
   const parts = [channelsLabel(policy.channels)]
-  if (firstReply.enabled) parts.push(`reply within ${firstReply.value}${shortUnit(firstReply.unit)}`)
+  if (firstReply.enabled)
+    parts.push(`human reply within ${firstReply.value}${shortUnit(firstReply.unit)}`)
   if (resolution.enabled) parts.push(`resolve within ${resolution.value}${shortUnit(resolution.unit)}`)
   parts.push(policy.countBusinessHoursOnly ? 'business hours' : '24/7')
   return parts.join(' · ')
@@ -87,7 +88,7 @@ export function summaryParts(policy: Policy): SummaryPart[] {
   parts.push({ text: channelsLabel(policy.channels) || '(no channels)', strong: true })
   const { firstReply, resolution } = policy.targets
   if (firstReply.enabled) {
-    parts.push({ text: ' get a first reply within ' })
+    parts.push({ text: ' get a first human response within ' })
     parts.push({ text: `${firstReply.value} ${firstReply.unit}`, strong: true })
     if (resolution.enabled) {
       parts.push({ text: ' and are resolved within ' })

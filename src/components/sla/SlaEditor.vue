@@ -195,9 +195,9 @@ onMounted(() => {
         <!-- First reply -->
         <SettingRow
           icon="Reply"
-          label="First reply"
+          label="First human response"
           :tooltip="SLA_TOOLTIPS.firstReply"
-          description="Time until the first agent reply"
+          description="Time until the first human reply"
         >
           <Input
             :model-value="draft.targets.firstReply.value || ''"

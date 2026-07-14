@@ -116,7 +116,7 @@ export const SEED_POLICIES: Policy[] = [
 /** Tooltip copy for the editor rows (ⓘ only on the three timing rows). */
 export const SLA_TOOLTIPS = {
   firstReply:
-    "How fast your team should send the first reply after a customer's first message.",
+    'Counts from the incoming message — including any time the AI spent first — and stops only when a person replies.',
   resolution:
     'How fast the ticket should be fully closed, from the moment it was created.',
   businessHours: 'Whether the clock runs 24/7 or only during business hours.',
