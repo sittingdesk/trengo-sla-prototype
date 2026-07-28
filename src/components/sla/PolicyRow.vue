@@ -2,11 +2,12 @@
 // PolicyRow — one policy on the overview. The whole row navigates to the
 // editor; the Switch flips active without navigating (stopPropagation wrapper).
 // `error` shows a brief inline message (e.g. an activation refused by the
-// per-channel overlap check). Delete is a hover-revealed trash with an inline
-// two-step confirm (arm → "Delete?" → confirm); it disarms on mouseleave/timeout.
+// per-channel overlap check). Delete lives in a kebab (⋯) menu at the far
+// right and only REQUESTS deletion — the overview gates it behind a dialog.
 import { computed, ref } from 'vue'
 import Icon from '@/components/Icon.vue'
 import { Switch } from '@/components/ui/switch'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { Policy } from '@/data/slaData'
 import { scopeSentence } from '@/lib/sla'
 
@@ -23,24 +24,11 @@ const emit = defineEmits<{
 
 const scope = computed(() => scopeSentence(props.policy))
 
-const deleteArmed = ref(false)
-let disarmTimer: ReturnType<typeof setTimeout> | undefined
+const menuOpen = ref(false)
 
-function onDeleteClick() {
-  if (deleteArmed.value) {
-    clearTimeout(disarmTimer)
-    deleteArmed.value = false
-    emit('delete')
-    return
-  }
-  deleteArmed.value = true
-  clearTimeout(disarmTimer)
-  disarmTimer = setTimeout(disarm, 3000)
-}
-
-function disarm() {
-  clearTimeout(disarmTimer)
-  deleteArmed.value = false
+function requestDelete() {
+  menuOpen.value = false
+  emit('delete')
 }
 </script>
 
@@ -51,7 +39,6 @@ function disarm() {
     tabindex="0"
     @click="emit('open')"
     @keydown.enter="emit('open')"
-    @mouseleave="disarm"
   >
     <!-- Name + scope -->
     <div class="min-w-0 flex-1" :class="!policy.active && 'opacity-50'">
@@ -60,32 +47,34 @@ function disarm() {
       <p v-if="error" class="mt-1 text-xs font-medium text-error-500">{{ error }}</p>
     </div>
 
-    <!-- Delete: hover-revealed, two-step confirm; must not trigger navigation -->
-    <span class="flex shrink-0 items-center" @click.stop>
-      <button
-        v-if="deleteArmed"
-        type="button"
-        class="rounded-base px-2 py-1 text-xs font-semibold text-error-500 transition-colors hover:bg-grey-200"
-        @click="onDeleteClick"
-      >
-        Delete?
-      </button>
-      <button
-        v-else
-        type="button"
-        title="Delete policy"
-        class="flex size-7 items-center justify-center rounded-base text-grey-600 opacity-0 transition-all hover:bg-grey-200 hover:text-grey-900 focus-visible:opacity-100 focus-visible:outline-none focus-visible:shadow-focus-sm group-hover:opacity-100"
-        @click="onDeleteClick"
-      >
-        <Icon name="Trash" :size="16" />
-      </button>
-    </span>
-
     <!-- Active toggle: must not trigger row navigation -->
     <span class="flex shrink-0 items-center" @click.stop>
       <Switch :model-value="policy.active" @update:model-value="emit('toggle')" />
     </span>
 
-    <Icon name="ChevronRight" :size="16" class="shrink-0 text-grey-400" />
+    <!-- Kebab menu (far right): row actions; must not trigger navigation -->
+    <span class="flex shrink-0 items-center" @click.stop>
+      <Popover v-model:open="menuOpen">
+        <PopoverTrigger as-child>
+          <button
+            type="button"
+            aria-label="Policy actions"
+            class="flex size-7 items-center justify-center rounded-base text-grey-500 transition-colors hover:bg-grey-200 hover:text-grey-900 focus:outline-none focus-visible:shadow-focus-sm"
+          >
+            <Icon name="MoreVert" :size="18" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" class="w-44 p-1">
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 rounded-base px-2 py-1.5 text-sm font-medium text-error-500 transition-colors hover:bg-grey-100"
+            @click="requestDelete"
+          >
+            <Icon name="Trash" variant="filled" :size="16" />
+            Delete policy
+          </button>
+        </PopoverContent>
+      </Popover>
+    </span>
   </div>
 </template>

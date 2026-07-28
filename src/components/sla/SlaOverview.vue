@@ -4,10 +4,12 @@
 import { computed, ref } from 'vue'
 import Icon from '@/components/Icon.vue'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useSlaNav } from '@/composables/useSlaNav'
 import { useSlaPolicies } from '@/composables/useSlaPolicies'
 import { useViewMode } from '@/composables/useViewMode'
-import { coverage, sortPolicies } from '@/lib/sla'
+import { channelsLabel, coverage, sortPolicies } from '@/lib/sla'
+import type { Policy } from '@/data/slaData'
 import PolicyRow from './PolicyRow.vue'
 import PolicyRowSkeleton from './PolicyRowSkeleton.vue'
 
@@ -38,6 +40,14 @@ function onToggle(id: string) {
   rowError.value = { id, message: result.message }
   clearTimeout(errorTimer)
   errorTimer = setTimeout(() => (rowError.value = null), 4000)
+}
+
+/** Delete is gated behind a confirmation dialog naming the coverage impact. */
+const pendingDelete = ref<Policy | null>(null)
+
+function confirmDelete() {
+  if (pendingDelete.value) removePolicy(pendingDelete.value.id)
+  pendingDelete.value = null
 }
 </script>
 
@@ -109,9 +119,29 @@ function onToggle(id: string) {
           :error="rowError?.id === policy.id ? rowError.message : undefined"
           @open="goEditor(policy.id)"
           @toggle="onToggle(policy.id)"
-          @delete="removePolicy(policy.id)"
+          @delete="pendingDelete = policy"
         />
       </div>
     </template>
+
+    <!-- Delete confirmation: names the policy + its coverage impact -->
+    <Dialog :open="!!pendingDelete" @update:open="(v) => { if (!v) pendingDelete = null }">
+      <DialogContent class="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Delete “{{ pendingDelete?.name }}”?</DialogTitle>
+          <DialogDescription>
+            This policy will be permanently deleted.
+            <template v-if="pendingDelete?.active && pendingDelete.channels.length">
+              Conversations on {{ channelsLabel(pendingDelete.channels) }} will no longer
+              have an SLA.
+            </template>
+          </DialogDescription>
+        </DialogHeader>
+        <div class="flex justify-end gap-2">
+          <Button variant="outline" @click="pendingDelete = null">Cancel</Button>
+          <Button variant="destructive" @click="confirmDelete">Delete policy</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
