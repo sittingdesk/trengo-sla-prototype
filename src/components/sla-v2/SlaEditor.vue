@@ -274,9 +274,9 @@ onMounted(() => {
         <!-- First reply -->
         <SettingRow
           icon="Reply"
-          label="First human response"
+          label="First response"
           :tooltip="SLA_TOOLTIPS.firstReply"
-          description="Time until the first human reply"
+          description="Time until the first reply, from AI or a person"
         >
           <div class="flex items-center gap-2">
             <Input

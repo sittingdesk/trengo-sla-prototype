@@ -5,8 +5,9 @@
 // iteration 1 and iteration 2 are fully independent copies (own components,
 // store, data), chosen via the bottom-right IterationSwitcher. The view-mode
 // switcher (Normal/Loading/Empty) is shared and applies to whichever overview.
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RailSidebar } from '@/components/rail'
+import SlaAnalyticsModal from '@/components/analytics/SlaAnalyticsModal.vue'
 import SettingsSidebar from '@/components/layout/SettingsSidebar.vue'
 import SlaOverview from '@/components/sla/SlaOverview.vue'
 import SlaEditor from '@/components/sla/SlaEditor.vue'
@@ -23,6 +24,9 @@ const { iteration } = useIteration()
 const { nav } = useSlaNav()
 const { nav: navV2 } = useSlaNavV2()
 
+// The rail's pie-chart ("Reports") icon opens the SLA analytics preview modal.
+const analyticsOpen = ref(false)
+
 const onOverview = computed(() =>
   iteration.value === 1 ? nav.value.view === 'overview' : navV2.value.view === 'overview',
 )
@@ -30,7 +34,7 @@ const onOverview = computed(() =>
 
 <template>
   <div class="flex h-full w-full overflow-hidden">
-    <RailSidebar active="settings" />
+    <RailSidebar active="settings" @select="(k: string) => { if (k === 'reports') analyticsOpen = true }" />
     <SettingsSidebar />
 
     <!-- Scrollable content area -->
@@ -52,5 +56,8 @@ const onOverview = computed(() =>
       <CustomFieldsToggle v-if="iteration === 2" />
       <ViewModeSwitcher v-if="onOverview" />
     </div>
+
+    <!-- SLA analytics preview (opened from the rail's pie-chart icon) -->
+    <SlaAnalyticsModal v-model:open="analyticsOpen" />
   </div>
 </template>

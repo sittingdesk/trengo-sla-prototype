@@ -193,7 +193,7 @@ export const SEED_POLICIES: Policy[] = [
 /** Tooltip copy for the editor rows (ⓘ only on the three timing rows). */
 export const SLA_TOOLTIPS = {
   firstReply:
-    'Counts from the incoming message — including any time the AI spent first — and stops only when a person replies.',
+    'Counts from the incoming message and stops on the first reply — whether that comes from an AI Agent or a person.',
   resolution:
     "How fast the ticket should be fully closed, from the moment it was created. Each value's target applies when the ticket's custom field is set to it; anything else uses the default.",
   businessHours: 'Whether the clock runs 24/7 or only during business hours.',
