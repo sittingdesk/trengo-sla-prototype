@@ -8,8 +8,8 @@ import { computed, ref } from 'vue'
 import Icon from '@/components/Icon.vue'
 import { Switch } from '@/components/ui/switch'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import type { Policy } from '@/data/slaData'
-import { scopeSentence } from '@/lib/sla'
+import type { Policy } from '@/data/slaDataV2'
+import { scopeSentence } from '@/lib/slaV2'
 
 const props = defineProps<{
   policy: Policy
