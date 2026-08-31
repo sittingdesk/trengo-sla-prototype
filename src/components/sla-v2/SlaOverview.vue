@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useSlaNavV2 } from '@/composables/useSlaNavV2'
 import { useSlaPoliciesV2 } from '@/composables/useSlaPoliciesV2'
 import { useViewMode } from '@/composables/useViewMode'
+import { useIteration } from '@/composables/useIteration'
 import { channelsLabel, coverage, sortPolicies } from '@/lib/slaV2'
 import type { Policy } from '@/data/slaDataV2'
 import PolicyRow from './PolicyRow.vue'
@@ -15,6 +16,7 @@ import PolicyRowSkeleton from './PolicyRowSkeleton.vue'
 
 const { goEditor } = useSlaNavV2()
 const { policies, toggleActive, removePolicy } = useSlaPoliciesV2()
+const { iteration } = useIteration()
 const { mode } = useViewMode()
 
 const sorted = computed(() => sortPolicies(policies.value))
@@ -57,7 +59,12 @@ function confirmDelete() {
     <!-- Header -->
     <div class="flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-lg font-bold text-grey-900">Service level agreements</h1>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold text-grey-900">Service level agreements</h1>
+          <span class="rounded-pill bg-grey-200 px-2 py-0.5 text-xs font-semibold text-grey-600">
+            Iteration {{ iteration }}
+          </span>
+        </div>
         <p class="mt-1 text-sm text-grey-600">
           Response time promises for your team, one policy per channel.
         </p>

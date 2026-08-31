@@ -55,12 +55,13 @@ team; the definitions below are the "how it's measured" contract.
 ### Section 1 — SLA compliance (headline)
 - **Shows:** an overall compliance ring + "X of Y conversations met their SLA."
 - **Definition:**
-  > **SLA compliance = met ÷ measured, judged strictly** — every *enabled* target on a
-  > conversation must pass, or the whole conversation counts as a miss. **AI-only** and
-  > **no-policy** conversations are **excluded** from the measured total (the denominator).
+  > **SLA compliance = met ÷ measured, judged strictly** — every target that applies to a
+  > conversation must pass, or the whole conversation counts as a miss. Only **no-policy**
+  > conversations are **excluded** from the measured total (the denominator).
 - **Logic notes:** "strict" means one failing target fails the whole conversation. The
-  denominator is conversations with ≥1 applicable target; AI-only conversations enter only via
-  the resolution target (they have no first-response obligation).
+  denominator is conversations with ≥1 applicable SLA. Under the V1 target (First response
+  incl. AI) an AI reply or AI close counts like any other, so **AI-handled conversations are
+  measured, not set aside** — they are judged on whichever targets apply to them.
 
 ### Section 2 — Resolution by custom field
 - **Shows:** resolution compliance per **custom-field value** (e.g. Topic → Invoices, Contract
@@ -84,6 +85,19 @@ team; the definitions below are the "how it's measured" contract.
   > over the period; closed/open are **ticket volumes**. Channel volumes sum to the measured total.
 - **Logic notes:** "worst first" is deliberate — it's the operational signal (which channel to
   fix). Uses the same compliance definition as §1, sliced by channel.
+
+### The AI-vs-human basis is a per-tile definition (dashboard design note)
+First response can be read two ways — **incl. AI** (any first reply stops the clock) or
+**human only** (only a human's reply). This is a *definition* parameter (it changes what the
+metric means), not a *filter* (which slices every tile the same way), and it only touches
+**first-response** tiles. So on the envisioned **dynamic-tile dashboard** it should be
+**per-tile config**, shown in the tile's title (e.g. "First response compliance · incl. AI"),
+**not** one overarching live toggle. This keeps tiles self-describing and portable, and it
+dissolves the "what if there are no SLA metrics?" problem — with no first-response tile there is
+simply no control to show or hide (a global toggle would have to appear/disappear by inventory).
+Optional later convenience: a dashboard default that new first-response tiles inherit but each
+can override. In the prototype's preview modal the single toggle stands in for this, but every
+first-response view now **labels its active basis** to model the per-tile intent.
 
 ### What is NOT in this preview (still data-team / backend work)
 Consistent with the earlier dashboard tracking, these remain out of the prototype:
