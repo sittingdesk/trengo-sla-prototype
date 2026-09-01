@@ -1,5 +1,6 @@
 <script setup lang="ts">
-// PolicyRow — one SLA on the overview. A type thumbnail + label identify it
+// PolicyRow — one SLA on the overview. A type thumbnail + the description's
+// leading "Resolution for …" identify it
 // (the list mixes first-response and resolution SLAs). The whole row navigates to the
 // editor; the Switch flips active without navigating (stopPropagation wrapper).
 // `error` shows a brief inline message (e.g. an activation refused by the
@@ -51,12 +52,7 @@ function requestDelete() {
 
     <!-- Name + type + scope -->
     <div class="min-w-0 flex-1" :class="!policy.active && 'opacity-50'">
-      <span class="flex items-center gap-2">
-        <span class="min-w-0 truncate text-sm font-semibold text-grey-900">{{ policy.name }}</span>
-        <span
-          class="shrink-0 rounded-pill bg-grey-200 px-1.5 py-0.5 text-[10px] font-semibold text-grey-600"
-        >{{ SLA_TYPE_META[policy.type].label }}</span>
-      </span>
+      <span class="block truncate text-sm font-semibold text-grey-900">{{ policy.name }}</span>
       <p class="mt-0.5 truncate text-xs text-grey-600">{{ scope }}</p>
       <p v-if="error" class="mt-1 text-xs font-medium text-error-500">{{ error }}</p>
     </div>

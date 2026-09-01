@@ -71,13 +71,16 @@ function differingRows(resolution: ResolutionConfig): ResolutionConfig['rows'] {
   return resolution.rows.filter((r) => r.value !== d.value || r.unit !== d.unit)
 }
 
-/** Plain-language one-liner for an SLA row on the overview. */
+/** Plain-language one-liner for an SLA row on the overview. Leads with the type
+ * ("Resolution for Info email …") so the row says what it is without a badge;
+ * the target then drops the now-redundant reply/resolve verb. */
 export function scopeSentence(sla: Sla): string {
-  const parts = [channelsLabel(sla.channels)]
+  const typeLabel = sla.type === 'first_response' ? 'First response' : 'Resolution'
+  const parts = [`${typeLabel} for ${channelsLabel(sla.channels)}`]
   if (sla.type === 'first_response') {
-    parts.push(`reply within ${sla.target.value}${shortUnit(sla.target.unit)}`)
+    parts.push(`within ${sla.target.value}${shortUnit(sla.target.unit)}`)
   } else {
-    let clause = `resolve within ${sla.resolution.default.value}${shortUnit(sla.resolution.default.unit)}`
+    let clause = `within ${sla.resolution.default.value}${shortUnit(sla.resolution.default.unit)}`
     const diff = differingRows(sla.resolution).length
     if (diff) clause += ` +${diff} by type`
     parts.push(clause)
