@@ -36,22 +36,28 @@ function channelLabel(id: string): string {
 }
 
 /**
- * Channel part of the scope sentence. Multiple instances of one channel type
- * (e.g. two WhatsApp numbers) collapse to "WhatsApp (2 numbers)".
+ * Channel part of a sentence. Multiple instances of one channel type (e.g. two
+ * WhatsApp numbers) collapse to "WhatsApp (2 numbers)". Pass `max` to cap the
+ * list at N names and append "+N more" — used by the overview row so the target
+ * never gets pushed out; omit it to name every channel (editor summary).
  */
-export function channelsLabel(channels: string[]): string {
+export function channelsLabel(channels: string[], max?: number): string {
   const groups = new Map<string, number>()
   for (const id of channels) {
     const base = channelLabel(id).replace(/\s*\(.*\)$/, '')
     groups.set(base, (groups.get(base) ?? 0) + 1)
   }
-  return [...groups.entries()]
-    .map(([base, n]) => {
-      if (n > 1) return `${base} (${n} numbers)`
-      const id = channels.find((c) => channelLabel(c).startsWith(base))
-      return id ? channelLabel(id) : base
-    })
-    .join(' + ')
+  const names = [...groups.entries()].map(([base, n]) => {
+    if (n > 1) return `${base} (${n} numbers)`
+    const id = channels.find((c) => channelLabel(c).startsWith(base))
+    return id ? channelLabel(id) : base
+  })
+  // Uncapped (editor summary, dialogs): prose-style "A + B + C".
+  if (max === undefined) return names.join(' + ')
+  // Capped (overview row): comma-separated, with "+N more" once over the cap —
+  // one separator style so short and collapsed rows read the same.
+  if (names.length <= max) return names.join(', ')
+  return `${names.slice(0, max).join(', ')} +${names.length - max} more`
 }
 
 /** Display name of a custom field. */
@@ -76,7 +82,7 @@ function differingRows(resolution: ResolutionConfig): ResolutionConfig['rows'] {
  * the target then drops the now-redundant reply/resolve verb. */
 export function scopeSentence(sla: Sla): string {
   const typeLabel = sla.type === 'first_response' ? 'First response' : 'Resolution'
-  const parts = [`${typeLabel} for ${channelsLabel(sla.channels)}`]
+  const parts = [`${typeLabel} for ${channelsLabel(sla.channels, 2)}`]
   if (sla.type === 'first_response') {
     parts.push(`within ${sla.target.value}${shortUnit(sla.target.unit)}`)
   } else {
