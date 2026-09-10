@@ -17,6 +17,7 @@ const { iteration } = useIteration()
       <option :value="1">Iteration 1</option>
       <option :value="2">Iteration 2</option>
       <option :value="3">Iteration 3</option>
+      <option :value="4">Iteration 4</option>
     </select>
     <Icon
       name="ChevronDown"

@@ -3,10 +3,10 @@
 // the others without affecting them. Prototype-only switch (in-memory).
 import { ref } from 'vue'
 
-export type Iteration = 1 | 2 | 3
+export type Iteration = 1 | 2 | 3 | 4
 
 // Opens on the latest iteration — it's the one being reviewed.
-const iteration = ref<Iteration>(3)
+const iteration = ref<Iteration>(4)
 
 export function useIteration() {
   return { iteration }

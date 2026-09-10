@@ -3,7 +3,7 @@
 //
 // Source of truth for the model's definitions, drawn from the SLA hand-off's
 // locked decisions + the analytics definitions. One reference across all
-// iterations; items that only apply to Iteration 3 (typed SLAs) are badged.
+// iterations; items that only apply to the typed iterations (3, 4) are badged.
 
 export type ExplainerBadge = 'Future'
 
@@ -40,6 +40,7 @@ export const SLA_EXPLAINERS: ExplainerGroup[] = [
           'The clock starts when the customer’s message arrives.',
           'The first reply of any kind stops it — an AI Agent or a person.',
           'Any first reply counts, so there’s no human-vs-bot distinction to build.',
+          'The target can vary by a custom field value (see When the custom field is set later).',
         ],
         counts: ['A substantive reply, from an AI Agent or a person'],
         notCounts: ['A canned auto-acknowledgment (the metric is sound only where the AI genuinely replies)'],
@@ -63,9 +64,10 @@ export const SLA_EXPLAINERS: ExplainerGroup[] = [
         summary: 'The target can change mid-conversation — the clock never restarts.',
         points: [
           'A ticket’s custom field is often set after the conversation starts — by a person or by a rule.',
-          'As soon as it’s set, the conversation switches to that value’s target.',
+          'As soon as it’s set, the conversation switches to that value’s target — for either clock.',
           'Change or clear the field and it falls back to the next value that matches, or to the default.',
-          'Set it after the conversation is closed and nothing changes — the result is already decided.',
+          'Once a result is decided, a later value can’t change it — the conversation is already closed, or the first reply already landed.',
+          'First response decides fast, so per-value first-response targets only mean something when a rule sets the field on arrival.',
         ],
         counts: ['Time from the moment the conversation started'],
         notCounts: ['Time from the moment the custom field was set'],
@@ -116,7 +118,7 @@ export const SLA_EXPLAINERS: ExplainerGroup[] = [
         summary: 'Whether every channel is claimed by an active SLA.',
         points: [
           'Channels with no active SLA have no promise — surfaced as a banner on the overview.',
-          'In Iteration 3 coverage is per type: a channel can be covered for first response but not resolution.',
+          'In Iterations 3 and 4 coverage is per type: a channel can be covered for first response but not resolution.',
         ],
       },
     ],
