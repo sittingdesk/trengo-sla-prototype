@@ -7,9 +7,11 @@ import { channelConflicts } from '@/lib/slaV4'
 
 const STORAGE_KEY = 'trengo_sla_policies_v4'
 // v9: Iteration 3 — TYPED SLAs (one type each). v10: Iteration 4 — both types
-// share ONE `target` shape (the separate `resolution` field is gone), so the
-// stored shape changes and old data reseeds.
-const SCHEMA_VERSION = 10
+// share ONE `target` shape (the separate `resolution` field is gone). v11:
+// first response no longer varies by custom field, so SLAs stored under v10 can
+// still carry by-value rows the editor won't show — reseed rather than leave
+// them to surface in the scope sentence.
+const SCHEMA_VERSION = 11
 
 interface StoredShape {
   version: number

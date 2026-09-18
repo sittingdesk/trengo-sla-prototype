@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // SlaEditor (Iteration 4) — create + edit a single TYPED SLA. The type is fixed
 // (chosen in the picker on create, or the SLA's own type on edit) and shown as a
-// badge in the header. Unlike Iteration 3 there is now ONE target block for both
-// types: the target can vary by a custom field value whether it measures first
-// response or resolution. The type only swaps the icon, copy, tooltip and time
-// units. Works on a deep-copied draft; nothing touches the store until Save.
+// badge in the header. The target block follows the type: first response is a
+// single flat duration, resolution adds the custom-field variation
+// (SLA_TYPE_META[type].varyByField). Works on a deep-copied draft; nothing
+// touches the store until Save.
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import Icon from '@/components/Icon.vue'
 import { Button } from '@/components/ui/button'
@@ -115,7 +115,7 @@ const summary = computed(() => {
   const s = asSla.value
   // When simulating "no custom fields", the plain-terms line reflects the
   // default-only target (the by-value rows aren't shown/used).
-  if (!hasCustomFields.value) {
+  if (typeMeta.varyByField && !hasCustomFields.value) {
     return summaryParts({ ...s, target: { ...s.target, rows: [] } })
   }
   return summaryParts(s)
@@ -135,7 +135,7 @@ function clampInt(v: string | number | undefined): number {
   return Number.isFinite(n) && n > 0 ? n : 0
 }
 
-/* ── target by custom field (both types) ───────────────────────────────── */
+/* ── target by custom field (resolution only) ──────────────────────────── */
 
 const target = computed(() => draft.target)
 
@@ -280,9 +280,35 @@ onMounted(() => {
 
         <div class="h-px w-full bg-grey-300" />
 
-        <!-- Target — one block for BOTH types: a default plus optional targets
-             per custom field value. Only the copy and the units differ. -->
+        <!-- Target — a single flat duration for types that don't vary by field
+             (first response). Same row shape as the variation block's default. -->
         <SettingRow
+          v-if="!typeMeta.varyByField"
+          :icon="typeMeta.icon"
+          label="Target"
+          :tooltip="targetTooltip"
+          :description="typeMeta.targetDescription"
+        >
+          <div class="flex items-center gap-2">
+            <Input
+              :model-value="draft.target.default.value || ''"
+              type="number"
+              min="1"
+              step="1"
+              class="w-[85px] rounded-base border-grey-400 text-base font-medium text-grey-700 shadow-100 tabular-nums"
+              @update:model-value="draft.target.default.value = clampInt($event)"
+            />
+            <UnitSelect
+              v-model="draft.target.default.unit"
+              class="w-[119px]"
+              :options="typeMeta.units"
+            />
+          </div>
+        </SettingRow>
+
+        <!-- Target — varies by the value of a custom ticket field (resolution) -->
+        <SettingRow
+          v-else
           :icon="typeMeta.icon"
           label="Target"
           :tooltip="targetTooltip"
@@ -305,17 +331,6 @@ onMounted(() => {
                 />
                 <span class="size-7 shrink-0" aria-hidden="true" />
               </div>
-
-              <!-- First response decides fast: a value set after the reply landed
-                   can't change that ticket's target. Say so where the
-                   choice is actually made. -->
-              <p
-                v-if="hasCustomFields && draft.type === 'first_response' && draft.target.fieldId"
-                class="mt-2 text-xs text-grey-600"
-              >
-                A field set after the first reply doesn't change the result — this works best
-                when a rule sets it on arrival.
-              </p>
 
               <!-- No eligible custom field: a polished callout (the default row
                    below still keeps the base target working). -->

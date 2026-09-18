@@ -2,7 +2,8 @@
 // overview and editor render is derived here so behaviour stays consistent.
 // Iteration 4 works with TYPED SLAs (first_response | resolution) that share ONE
 // target shape, so the target helpers below are type-agnostic: only the sentence
-// verb differs. Coverage and channel exclusivity remain per type.
+// verb differs, and only resolution ever fills in the by-value rows. Coverage
+// and channel exclusivity remain per type.
 import {
   ALL_CHANNEL_ITEMS,
   CUSTOM_FIELDS,
@@ -184,14 +185,22 @@ export function channelConflicts(sla: Sla, slas: Sla[]): ChannelConflict[] {
 
 /* ── lifecycle helpers ─────────────────────────────────────────────────── */
 
+/**
+ * Trim the name, and strip any custom-field variation from a type that doesn't
+ * offer it (first response). Enforced here rather than trusted from the editor,
+ * so a stored SLA can never carry rows the UI won't show — which would leak into
+ * the scope sentence and the plain-terms summary.
+ */
 export function normalizeSla(sla: Sla): Sla {
-  return { ...sla, name: sla.name.trim() }
+  const name = sla.name.trim()
+  if (SLA_TYPE_META[sla.type].varyByField) return { ...sla, name }
+  return { ...sla, name, target: { ...sla.target, fieldId: '', rows: [] } }
 }
 
 /**
  * A target is valid when the default and every value row are ≥ 1, and any rows
- * require a chosen field. One rule for both types — that's the point of
- * Iteration 4.
+ * require a chosen field. One rule for both types; first response simply never
+ * has rows.
  */
 export function targetValid(sla: Sla): boolean {
   const t = sla.target

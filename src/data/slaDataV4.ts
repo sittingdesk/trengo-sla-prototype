@@ -1,11 +1,11 @@
 // SLA prototype data (Iteration 4) — TYPED SLAs with ONE target shape.
 // Sample/prototype data lives here (CLAUDE.md rule 4: no inline mock data).
 //
-// Iteration 4 builds on 3 (each SLA is a single TYPE, picked first) and closes
-// the gap between the two types: the "vary the target by a custom field value"
-// concept, which Iteration 3 gave only to resolution, now applies to FIRST
-// RESPONSE too. So both types share one `TargetConfig`; `type` only decides the
-// copy, the icon, the time units, and the per-type coverage/exclusivity rules.
+// Iteration 4 builds on 3 (each SLA is a single TYPE, picked first). Both types
+// share one `TargetConfig`, but only RESOLUTION varies its target by a custom
+// field value — first response is a single flat duration (`varyByField` below).
+// `type` decides the copy, the icon, the time units, whether variation is
+// offered, and the per-type coverage/exclusivity rules.
 
 export type TimeUnit = 'minutes' | 'hours' | 'days'
 
@@ -29,9 +29,10 @@ export interface TargetRow extends Duration {
  * match wins). `default` ("All other tickets") is mandatory — it is the
  * coverage guarantee for unlisted and future values.
  *
- * Used by BOTH SLA types. For resolution the field is usually set well before
- * the ticket closes; for first response the window is short, so a value set
- * after the reply landed can no longer change that ticket's result.
+ * Used by both SLA types, but only resolution offers the variation
+ * (`SLA_TYPE_META[type].varyByField`). A first-response SLA leaves `fieldId`
+ * empty with no rows, so only `default` is meaningful — `normalizeSla` enforces
+ * that rather than trusting the editor.
  */
 export interface TargetConfig {
   fieldId: string
@@ -78,6 +79,8 @@ export const SLA_TYPE_META: Record<
     icon: string
     /** Editor description for the Target row. */
     targetDescription: string
+    /** Whether this type's target can vary by a custom field value. */
+    varyByField: boolean
     units: UnitOption[]
     defaultTarget: Duration
   }
@@ -86,8 +89,8 @@ export const SLA_TYPE_META: Record<
     label: 'First response',
     description: 'Time until the first reply — from an AI Agent or a person.',
     icon: 'Reply',
-    targetDescription:
-      'Time until the first reply, from AI or a person. Set a different target per custom field value.',
+    targetDescription: 'Time until the first reply, from AI or a person.',
+    varyByField: false,
     units: [
       { value: 'minutes', label: 'Minutes' },
       { value: 'hours', label: 'Hours' },
@@ -100,6 +103,7 @@ export const SLA_TYPE_META: Record<
     icon: 'Check',
     targetDescription:
       'Time until the ticket is closed. Set a different target per custom field value.',
+    varyByField: true,
     units: [
       { value: 'hours', label: 'Hours' },
       { value: 'days', label: 'Days' },
@@ -199,10 +203,8 @@ export const ALL_CHANNEL_ITEMS: ChannelItem[] = CHANNELS.flatMap((g) => g.items)
  * type); a channel MAY carry one SLA of each type. Some channels are left
  * uncovered per type to demonstrate the per-type coverage banner.
  *
- * "Email first response" is the Iteration-4 showcase: a first-response target
- * that varies by Priority. It deliberately uses a DIFFERENT field than the
- * resolution seed (Topic) — each SLA picks its own — and keeps Medium equal to
- * the default, exercising the "a row equal to the default is a no-op" rule.
+ * First-response SLAs carry a flat target; only the resolution seeds use the
+ * custom-field variation (Billing resolution, the Nedflex example).
  */
 export const SEED_SLAS: Sla[] = [
   // ── First response ──
@@ -222,15 +224,7 @@ export const SEED_SLAS: Sla[] = [
     active: true,
     channels: ['support_email', 'sales_email', 'info_email'],
     countBusinessHoursOnly: true,
-    target: {
-      fieldId: 'priority',
-      default: { value: 1, unit: 'hours' },
-      rows: [
-        { id: 'row_high', optionId: 'high', value: 15, unit: 'minutes' },
-        { id: 'row_medium', optionId: 'medium', value: 1, unit: 'hours' },
-        { id: 'row_low', optionId: 'low', value: 4, unit: 'hours' },
-      ],
-    },
+    target: { fieldId: '', default: { value: 1, unit: 'hours' }, rows: [] },
   },
   // ── Resolution ──
   {
@@ -265,7 +259,7 @@ export const SEED_SLAS: Sla[] = [
 /** Tooltip copy for the editor rows. */
 export const SLA_TOOLTIPS = {
   firstReply:
-    "Counts from the incoming message and stops on the first reply — whether that comes from an AI Agent or a person. Each value's target applies when the ticket's custom field is set to it; anything else uses the default. A value set after the reply landed doesn't change the result.",
+    'Counts from the incoming message and stops on the first reply — whether that comes from an AI Agent or a person.',
   resolution:
     "How fast the ticket should be fully closed, from the moment it was created. Each value's target applies when the ticket's custom field is set to it; anything else uses the default. Setting the field later doesn't restart the clock — it still runs from when the ticket was created.",
   businessHours: 'Whether the clock runs 24/7 or only during business hours.',
