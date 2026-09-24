@@ -1,8 +1,9 @@
 // SLA analytics — static illustrative mock for the PER-TYPE modal (Iterations 3 & 4).
 // Sample/prototype data lives here (CLAUDE.md rule 4: no inline mock data).
 //
-// Typed SLAs mean per-type analytics: First response and Resolution each get a
-// compliance % + a median time.
+// Typed SLAs mean per-type analytics: an overall SLA-compliance headline, then
+// First response and Resolution each with a compliance % + a median time and a
+// by-topic breakdown.
 //
 // The AI split is a TICKET COHORT, not a measurement basis: "Human only" means
 // an AI Agent never touched the ticket at all — so it is a different, much
@@ -20,13 +21,33 @@ export type Cohort = 'all' | 'human'
 /** A metric per cohort. `measured` DIFFERS per cohort — that's the whole point. */
 export type ByCohort<T> = Record<Cohort, T>
 
-/* ── §0 headline compliance + median time, per type ───────────────────────── */
+/* ── §0 headline compliance + median time ─────────────────────────────────── */
 
-export interface TypeStat {
-  overall: number // compliance 0–1
+/** A rate: met ÷ measured. Compliance has no "median time" — it isn't a duration. */
+export interface ComplianceStat {
+  overall: number // 0–1
   met: number
   measured: number
+}
+
+export interface TypeStat extends ComplianceStat {
   medianTime: string // median first-response / resolution time
+}
+
+/**
+ * Overall SLA compliance — the whole-ticket verdict, judged STRICTLY: a ticket
+ * counts as met only if it passed EVERY target that applied to it. The
+ * denominator is tickets carrying at least one SLA (2,778 have a first-response
+ * SLA, 1,982 a resolution SLA, 1,780 have both → 2,980 distinct tickets);
+ * no-SLA tickets are excluded entirely.
+ *
+ * Because it's an AND across targets, this number is necessarily BELOW both
+ * per-type numbers below — 87% against 94% first response and 89% resolution.
+ * If it ever reads higher than either, the calculation is wrong.
+ */
+export const SLA_COMPLIANCE: ByCohort<ComplianceStat> = {
+  all: { overall: 0.87, met: 2595, measured: 2980 },
+  human: { overall: 0.81, met: 358, measured: 443 },
 }
 
 /**
@@ -51,36 +72,6 @@ export const FIRST_RESPONSE: ByCohort<TypeStat> = {
 export const RESOLUTION: ByCohort<TypeStat> = {
   all: { overall: 0.89, met: 1764, measured: 1982, medianTime: '8h 30m' },
   human: { overall: 0.91, met: 269, measured: 296, medianTime: '6h 45m' },
-}
-
-/* ── response-time distribution (bands relative to target) ────────────────── */
-
-/** Counts per band: met (≤ target), then 1–2× / 2–4× / > 4× the target. */
-export interface Distribution {
-  met: number
-  over1: number
-  over2: number
-  over3: number
-}
-
-/** Bands are relative to each SLA's target, so the bar is meaningful across
- * policies with different targets (and normalizes custom-field variation). */
-export const DIST_BANDS: [string, string, string, string] = [
-  '≤ target',
-  '1–2× target',
-  '2–4× target',
-  '> 4× target',
-]
-
-// Each band set sums to that cohort's `measured` above.
-export const FIRST_RESPONSE_DIST: ByCohort<Distribution> = {
-  all: { met: 2611, over1: 90, over2: 45, over3: 32 }, // 2778
-  human: { met: 354, over1: 30, over2: 16, over3: 12 }, // 412
-}
-
-export const RESOLUTION_DIST: ByCohort<Distribution> = {
-  all: { met: 1764, over1: 110, over2: 55, over3: 53 }, // 1982
-  human: { met: 269, over1: 14, over2: 8, over3: 5 }, // 296
 }
 
 /* ── by Topic (custom field) — a breakdown per type ───────────────────────── */
@@ -122,146 +113,13 @@ export const RESOLUTION_BY_TOPIC: { fieldId: string; rows: ResTopicRow[] } = {
   ],
 }
 
-/* ── breakdown tables (Channel / Team / Agent) ────────────────────────────── */
-
-/** A per-type cell: percent + median time. */
-export interface PerfCell {
-  pct: number
-  time: string
-}
-
-/**
- * One dimension's figures within one cohort. Volumes live here too — they must
- * move with the cohort, or the table contradicts the headline.
- * `fr`/`res` null = no SLA of that type; `closed + open === 0` = no tickets in
- * this cohort (rendered differently — a 0% pill would be a lie).
- */
-export interface CohortCells {
-  fr: PerfCell | null
-  res: PerfCell | null
-  closed: number
-  open: number
-}
-
-export interface PerfRow {
-  id: string
-  label: string
-  /** Initials for the agent avatar (agent table only; GDPR — no other PII). */
-  initials?: string
-  all: CohortCells
-  human: CohortCells
-}
-
-/**
- * Channels. Shaped so the human-only view SHOWS the point rather than captioning
- * it: AI Agents run on WhatsApp, Support email and Info email, so those collapse
- * to slivers, while Sales email (no AI) carries most of the human-only volume.
- * SMS + Instagram DM have no SLA of either type. Pre-sorted worst-first.
- */
-export const CHANNEL_PERFORMANCE: PerfRow[] = [
-  {
-    id: 'sms',
-    label: 'SMS',
-    all: { fr: null, res: null, closed: 142, open: 63 },
-    human: { fr: null, res: null, closed: 138, open: 61 },
-  },
-  {
-    id: 'sales_email',
-    label: 'Sales email',
-    all: { fr: { pct: 0.83, time: '41m 12s' }, res: null, closed: 305, open: 297 },
-    // No AI on this channel — the cohort barely changes it.
-    human: { fr: { pct: 0.83, time: '42m 30s' }, res: null, closed: 298, open: 291 },
-  },
-  {
-    id: 'instagram',
-    label: 'Instagram DM',
-    all: { fr: null, res: null, closed: 214, open: 96 },
-    human: { fr: null, res: null, closed: 58, open: 22 },
-  },
-  {
-    id: 'info_email',
-    label: 'Info email',
-    all: { fr: { pct: 0.93, time: '2m 10s' }, res: { pct: 0.9, time: '9h 34m' }, closed: 418, open: 71 },
-    human: { fr: { pct: 0.87, time: '28m 5s' }, res: { pct: 0.92, time: '7h 2m' }, closed: 61, open: 9 },
-  },
-  {
-    id: 'support_email',
-    label: 'Support email',
-    all: { fr: { pct: 0.96, time: '1m 55s' }, res: { pct: 0.94, time: '8h 7m' }, closed: 662, open: 20 },
-    human: { fr: { pct: 0.91, time: '19m 40s' }, res: { pct: 0.95, time: '6h 30m' }, closed: 48, open: 3 },
-  },
-  {
-    id: 'whatsapp',
-    label: 'WhatsApp',
-    all: { fr: { pct: 0.98, time: '40s' }, res: { pct: 0.97, time: '9h 20m' }, closed: 337, open: 265 },
-    // Almost fully AI-handled — nothing left to report on.
-    human: { fr: null, res: null, closed: 0, open: 0 },
-  },
-]
-
-// Teams (fictional): all carry both types.
-export const TEAM_PERFORMANCE: PerfRow[] = [
-  {
-    id: 'sales',
-    label: 'Sales',
-    all: { fr: { pct: 0.92, time: '3m 20s' }, res: { pct: 0.81, time: '10h 12m' }, closed: 288, open: 154 },
-    human: { fr: { pct: 0.84, time: '38m 10s' }, res: { pct: 0.85, time: '8h 40m' }, closed: 121, open: 62 },
-  },
-  {
-    id: 'billing',
-    label: 'Billing',
-    all: { fr: { pct: 0.94, time: '2m 30s' }, res: { pct: 0.87, time: '9h 2m' }, closed: 402, open: 96 },
-    human: { fr: { pct: 0.86, time: '26m 45s' }, res: { pct: 0.9, time: '7h 15m' }, closed: 74, open: 14 },
-  },
-  {
-    id: 'support',
-    label: 'Support',
-    all: { fr: { pct: 0.96, time: '1m 48s' }, res: { pct: 0.92, time: '7h 41m' }, closed: 914, open: 210 },
-    human: { fr: { pct: 0.89, time: '21m 5s' }, res: { pct: 0.94, time: '6h 2m' }, closed: 96, open: 18 },
-  },
-  {
-    id: 'vip',
-    label: 'VIP',
-    all: { fr: { pct: 0.99, time: '35s' }, res: { pct: 0.96, time: '5h 18m' }, closed: 121, open: 12 },
-    human: { fr: { pct: 0.94, time: '11m 20s' }, res: { pct: 0.97, time: '4h 50m' }, closed: 63, open: 7 },
-  },
-]
-
-// Agents (fictional; initials only — GDPR). Pre-sorted worst-first.
-export const AGENT_PERFORMANCE: PerfRow[] = [
-  {
-    id: 'a1',
-    label: 'Noa Jansen',
-    initials: 'NJ',
-    all: { fr: { pct: 0.9, time: '3m 40s' }, res: { pct: 0.8, time: '11h 2m' }, closed: 176, open: 41 },
-    human: { fr: { pct: 0.81, time: '41m 15s' }, res: { pct: 0.84, time: '9h 10m' }, closed: 34, open: 9 },
-  },
-  {
-    id: 'a2',
-    label: 'Sam de Vries',
-    initials: 'SV',
-    all: { fr: { pct: 0.93, time: '2m 55s' }, res: { pct: 0.85, time: '9h 20m' }, closed: 203, open: 33 },
-    human: { fr: { pct: 0.85, time: '30m 2s' }, res: { pct: 0.88, time: '7h 45m' }, closed: 41, open: 7 },
-  },
-  {
-    id: 'a3',
-    label: 'Lena Bakker',
-    initials: 'LB',
-    all: { fr: { pct: 0.95, time: '2m 5s' }, res: { pct: 0.9, time: '7h 55m' }, closed: 245, open: 28 },
-    human: { fr: { pct: 0.88, time: '24m 18s' }, res: { pct: 0.92, time: '6h 20m' }, closed: 52, open: 6 },
-  },
-  {
-    id: 'a4',
-    label: 'Youssef El Amrani',
-    initials: 'YE',
-    all: { fr: { pct: 0.97, time: '1m 30s' }, res: { pct: 0.94, time: '6h 12m' }, closed: 268, open: 19 },
-    human: { fr: { pct: 0.93, time: '15m 40s' }, res: { pct: 0.95, time: '5h 30m' }, closed: 58, open: 4 },
-  },
-]
-
 /* ── definitions ──────────────────────────────────────────────────────────── */
 
 export const ANALYTICS_DEFINITIONS_V3 = {
+  complianceTip:
+    'Share of tickets that met every SLA target that applied to them. Judged strictly — if a ticket had both a first-response and a resolution target, missing either one counts the whole ticket as a miss. Tickets with no SLA are excluded.',
+  compliance:
+    'The whole-ticket verdict across every applicable target — always lower than the per-type numbers, because one miss fails the ticket.',
   firstResponseTip:
     'Time from the incoming message to the first reply on the ticket. Any substantive reply stops the clock — from an AI Agent or a person — but a canned auto-acknowledgment doesn’t count.',
   resolutionTip:
@@ -271,12 +129,6 @@ export const ANALYTICS_DEFINITIONS_V3 = {
     'Share of tickets closed within the resolution target — each judged against its own target (resolution can vary by custom field).',
   byTopicNote:
     'First response uses one target for all tickets, so this by-topic view is a descriptive slice (where responses are slow), not a set of per-topic promises.',
-  perDimension:
-    'First response and resolution compliance + median times, worst first. "— no SLA" means that dimension has no SLA of that type.',
-  distributionNote:
-    "Closed tickets, measured in business hours. Bands are relative to each SLA's target. A substantive reply counts (an AI Agent or a person); auto-replies don't.",
-  agentPrivacyNote:
-    'Sample data — fictional agents, initials only. Real per-agent SLA reporting is people-performance data and needs access controls + aggregation thresholds.',
 
   /* the ticket cohort (the AI filter) */
   cohortAll:
