@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // ViewModeSwitcher — a mini segmented control pinned bottom-right that flips the
-// overview between Normal / Loading / Empty. Prototype affordance only.
+// page between Normal / Loading / Empty / Error. Prototype affordance only.
 import { useViewMode, VIEW_MODES } from '@/composables/useViewMode'
 
 const { mode } = useViewMode()
